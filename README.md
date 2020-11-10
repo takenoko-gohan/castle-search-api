@@ -1,1 +1,1 @@
-# go-search-api
+# castle-search-api
