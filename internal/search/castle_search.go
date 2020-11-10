@@ -17,11 +17,16 @@ type Query struct {
 	Prefecture string `json:"prefecture" query:"prefecture"`
 }
 
-type Response struct {
+type Result struct {
 	Name        string   `json:"name"`
 	Prefecture  string   `json:"prefecture"`
 	Rulers      []string `json:"rulers"`
 	Description string   `json:"description"`
+}
+
+type Response struct {
+	Message string `json:"message"`
+	Results []Result
 }
 
 func CastleSearch(c echo.Context) (err error) {
@@ -32,7 +37,7 @@ func CastleSearch(c echo.Context) (err error) {
 		return
 	}
 
-	//r := new(Response)
+	res := new(Response)
 	var (
 		b   map[string]interface{}
 		buf bytes.Buffer
@@ -77,7 +82,7 @@ func CastleSearch(c echo.Context) (err error) {
 	json.NewEncoder(&buf).Encode(query)
 
 	es := es.ConnectElasticsearch()
-	res, err := es.Search(
+	r, err := es.Search(
 		es.Search.WithContext(context.Background()),
 		es.Search.WithIndex("castle"),
 		es.Search.WithBody(&buf),
@@ -87,43 +92,25 @@ func CastleSearch(c echo.Context) (err error) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	defer res.Body.Close()
+	defer r.Body.Close()
 
-	if err := json.NewDecoder(res.Body).Decode(&b); err != nil {
+	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
 		log.Fatal(err)
 	}
 
-	//r.Name = b["hits"].(map[string]interface{})["hits"].([]interface{})["_source"].(map[string]interface{})["name"].(string)
-	//r.Prefecture = b["hits"].(map[string]interface{})["hits"].([]interface{})["_source"].(map[string]interface{})["prefecture"].(string)
-	//r.Rulers = b["hits"].(map[string]interface{})["hits"].([]interface{})["_source"].(map[string]interface{})["rulers"].(string)
-	//r.Description = b["hits"].(map[string]interface{})["hits"].([]interface{})["_source"].(map[string]interface{})["description"].(string)
-
-	r := make([]Response, 3)
-
-	for i, hit := range b["hits"].(map[string]interface{})["hits"].([]interface{}) {
+	for _, hit := range b["hits"].(map[string]interface{})["hits"].([]interface{}) {
+		result := new(Result)
 		doc := hit.(map[string]interface{})
-		//i := strconv.Itoa(index)
 
-		//r[i] = Response{
-		//	Name:       doc["_source"].(map[string]interface{})["name"].(string),
-		//	Prefecture: doc["_source"].(map[string]interface{})["prefecture"].(string),
-		//	//Rulers:      doc["_source"].(map[string]interface{})["rulers"].([]string),
-		//	Description: doc["_source"].(map[string]interface{})["description"].(string),
-		//}
-		fmt.Println("test1")
-		r[i].Name = doc["_source"].(map[string]interface{})["name"].(string)
-		fmt.Println("test2")
-		r[i].Prefecture = doc["_source"].(map[string]interface{})["prefecture"].(string)
-		fmt.Println("test3")
+		result.Name = doc["_source"].(map[string]interface{})["name"].(string)
+		result.Prefecture = doc["_source"].(map[string]interface{})["prefecture"].(string)
 		for _, str := range doc["_source"].(map[string]interface{})["rulers"].([]interface{}) {
-			r[i].Rulers = append(r[i].Rulers, str.(string))
+			result.Rulers = append(result.Rulers, str.(string))
 		}
-		fmt.Println("test4")
-		r[i].Description = doc["_source"].(map[string]interface{})["description"].(string)
-		fmt.Println(r[i])
+		result.Description = doc["_source"].(map[string]interface{})["description"].(string)
+
+		res.Results = append(res.Results, *result)
 	}
 
-	//fmt.Println(r)
-
-	return c.JSON(http.StatusOK, r)
+	return c.JSON(http.StatusOK, res)
 }
