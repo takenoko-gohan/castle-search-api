@@ -18,10 +18,10 @@ type Query struct {
 }
 
 type Response struct {
-	Name        string
-	Prefecture  string
-	Rulers      string
-	Description string
+	Name        string   `json:"name"`
+	Prefecture  string   `json:"prefecture"`
+	Rulers      []string `json:"rulers"`
+	Description string   `json:"description"`
 }
 
 func CastleSearch(c echo.Context) (err error) {
@@ -74,8 +74,6 @@ func CastleSearch(c echo.Context) (err error) {
 		query["query"].(map[string]interface{})["bool"].(map[string]interface{})["minimum_should_match"] = 1
 	}
 
-	fmt.Println(query)
-
 	json.NewEncoder(&buf).Encode(query)
 
 	es := es.ConnectElasticsearch()
@@ -95,7 +93,37 @@ func CastleSearch(c echo.Context) (err error) {
 		log.Fatal(err)
 	}
 
-	var r interface{} = b["hits"].(map[string]interface{})["hits"].(map[string]interface{})["_source"].(map[string]interface{})
+	//r.Name = b["hits"].(map[string]interface{})["hits"].([]interface{})["_source"].(map[string]interface{})["name"].(string)
+	//r.Prefecture = b["hits"].(map[string]interface{})["hits"].([]interface{})["_source"].(map[string]interface{})["prefecture"].(string)
+	//r.Rulers = b["hits"].(map[string]interface{})["hits"].([]interface{})["_source"].(map[string]interface{})["rulers"].(string)
+	//r.Description = b["hits"].(map[string]interface{})["hits"].([]interface{})["_source"].(map[string]interface{})["description"].(string)
+
+	r := make([]Response, 3)
+
+	for i, hit := range b["hits"].(map[string]interface{})["hits"].([]interface{}) {
+		doc := hit.(map[string]interface{})
+		//i := strconv.Itoa(index)
+
+		//r[i] = Response{
+		//	Name:       doc["_source"].(map[string]interface{})["name"].(string),
+		//	Prefecture: doc["_source"].(map[string]interface{})["prefecture"].(string),
+		//	//Rulers:      doc["_source"].(map[string]interface{})["rulers"].([]string),
+		//	Description: doc["_source"].(map[string]interface{})["description"].(string),
+		//}
+		fmt.Println("test1")
+		r[i].Name = doc["_source"].(map[string]interface{})["name"].(string)
+		fmt.Println("test2")
+		r[i].Prefecture = doc["_source"].(map[string]interface{})["prefecture"].(string)
+		fmt.Println("test3")
+		for _, str := range doc["_source"].(map[string]interface{})["rulers"].([]interface{}) {
+			r[i].Rulers = append(r[i].Rulers, str.(string))
+		}
+		fmt.Println("test4")
+		r[i].Description = doc["_source"].(map[string]interface{})["description"].(string)
+		fmt.Println(r[i])
+	}
+
+	//fmt.Println(r)
 
 	return c.JSON(http.StatusOK, r)
 }
