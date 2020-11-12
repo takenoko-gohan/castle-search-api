@@ -30,8 +30,6 @@ type Response struct {
 }
 
 func CastleSearch(c echo.Context) (err error) {
-	fmt.Println("検索API")
-
 	q := new(Query)
 	if err = c.Bind(q); err != nil {
 		return
@@ -42,42 +40,10 @@ func CastleSearch(c echo.Context) (err error) {
 		b   map[string]interface{}
 		buf bytes.Buffer
 	)
-	query := map[string]interface{}{
-		"query": map[string]interface{}{
-			"bool": map[string]interface{}{
-				"should": []map[string]interface{}{
-					{
-						"match": map[string]interface{}{
-							"name": q.Keyword,
-						},
-					},
-					{
-						"match": map[string]interface{}{
-							"rulers": q.Keyword,
-						},
-					},
-					{
-						"match": map[string]interface{}{
-							"description": q.Keyword,
-						},
-					},
-				},
-				"minimum_should_match": 1,
-			},
-		},
-	}
 
-	if q.Prefecture != "" {
-		query["query"].(map[string]interface{})["bool"].(map[string]interface{})["must"] = []map[string]interface{}{
-			{
-				"term": map[string]interface{}{
-					"prefecture": q.Prefecture,
-				},
-			},
-		}
-	} else {
-		query["query"].(map[string]interface{})["bool"].(map[string]interface{})["minimum_should_match"] = 1
-	}
+	query := createQuery(q)
+
+	fmt.Println(query)
 
 	json.NewEncoder(&buf).Encode(query)
 
