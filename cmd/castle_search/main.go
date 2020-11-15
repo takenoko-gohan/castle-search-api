@@ -3,7 +3,7 @@ package main
 import (
 	"github.com/labstack/echo"
 	"github.com/labstack/echo/middleware"
-    "github.com/takenoko-gohan/castle-search-api/internal/search"
+	"github.com/takenoko-gohan/castle-search-api/internal/search"
 )
 
 func main() {
@@ -11,7 +11,7 @@ func main() {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	
+
 	e.POST("/search", search.CastleSearch)
 	e.GET("/search", search.CastleSearch)
 

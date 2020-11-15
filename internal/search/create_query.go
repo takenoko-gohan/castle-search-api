@@ -53,7 +53,7 @@ func createQuery(q *Query) map[string]interface{} {
 				},
 			},
 		}
-	} else if q.Keyword != "" && q.Keyword != "城" && q.Prefecture == "" {
+	} else if q.Keyword != "" && q.Prefecture == "" {
 		query = map[string]interface{}{
 			"query": map[string]interface{}{
 				"bool": map[string]interface{}{
