@@ -7,6 +7,8 @@ import (
 )
 
 func connectElasticsearch() (*elasticsearch.Client, error) {
+	// 環境変数 ES_ADDRESS がある場合は記述されているアドレスに接続
+	// ない場合は、 http://localhost:9200 に接続
 	var addr string
 	if os.Getenv("ES_ADDRESS") != "" {
 		addr = os.Getenv("ES_ADDRESS")
