@@ -4,8 +4,6 @@ import (
 	"bytes"
 	"context"
 	"encoding/json"
-	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/labstack/echo"
@@ -25,7 +23,7 @@ type Result struct {
 }
 
 type Response struct {
-	Message string `json:"message"`
+	Message error `json:"message"`
 	Results []Result
 }
 
@@ -43,11 +41,14 @@ func CastleSearch(c echo.Context) (err error) {
 
 	query := createQuery(q)
 
-	fmt.Println(query)
-
 	json.NewEncoder(&buf).Encode(query)
 
-	es := es.ConnectElasticsearch()
+	es, err := es.ConnectElasticsearch()
+	if err != nil {
+		res.Message = err
+		return c.JSON(http.StatusInternalServerError, res)
+	}
+
 	r, err := es.Search(
 		es.Search.WithContext(context.Background()),
 		es.Search.WithIndex("castle"),
@@ -56,12 +57,14 @@ func CastleSearch(c echo.Context) (err error) {
 		es.Search.WithPretty(),
 	)
 	if err != nil {
-		log.Fatal(err)
+		res.Message = err
+		return c.JSON(http.StatusInternalServerError, res)
 	}
 	defer r.Body.Close()
 
 	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
-		log.Fatal(err)
+		res.Message = err
+		return c.JSON(http.StatusInternalServerError, res)
 	}
 
 	for _, hit := range b["hits"].(map[string]interface{})["hits"].([]interface{}) {

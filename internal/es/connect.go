@@ -1,16 +1,24 @@
 package es
 
 import (
-	"log"
+	"os"
 
 	elasticsearch "github.com/elastic/go-elasticsearch/v7"
 )
 
-func ConnectElasticsearch() *elasticsearch.Client {
-	es, err := elasticsearch.NewDefaultClient()
-	if err != nil {
-		log.Fatal(err)
+func ConnectElasticsearch() (*elasticsearch.Client, error) {
+	var addr string
+	if os.Getenv("ES_ADDRESS") != "" {
+		addr = os.Getenv("ES_ADDRESS")
+	} else {
+		addr = "http://localhost:9200"
 	}
+	cfg := elasticsearch.Config{
+		Addresses: []string{
+			addr,
+		},
+	}
+	es, err := elasticsearch.NewClient(cfg)
 
-	return es
+	return es, err
 }
