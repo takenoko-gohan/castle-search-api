@@ -7,7 +7,6 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
-	"github.com/takenoko-gohan/castle-search-api/internal/es"
 )
 
 type Query struct {
@@ -43,7 +42,7 @@ func CastleSearch(c echo.Context) (err error) {
 
 	json.NewEncoder(&buf).Encode(query)
 
-	es, err := es.ConnectElasticsearch()
+	es, err := connectElasticsearch()
 	if err != nil {
 		res.Message = err
 		return c.JSON(http.StatusInternalServerError, res)

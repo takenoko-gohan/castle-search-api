@@ -1,4 +1,4 @@
-package es
+package search
 
 import (
 	"os"
@@ -6,7 +6,7 @@ import (
 	elasticsearch "github.com/elastic/go-elasticsearch/v7"
 )
 
-func ConnectElasticsearch() (*elasticsearch.Client, error) {
+func connectElasticsearch() (*elasticsearch.Client, error) {
 	var addr string
 	if os.Getenv("ES_ADDRESS") != "" {
 		addr = os.Getenv("ES_ADDRESS")
