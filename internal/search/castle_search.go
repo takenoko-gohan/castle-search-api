@@ -10,8 +10,8 @@ import (
 )
 
 type Query struct {
-	Keyword    string `json:"keyword" query:"keyword"`
-	Prefecture string `json:"prefecture" query:"prefecture"`
+	Keyword    string `query:"keyword"`
+	Prefecture string `query:"prefecture"`
 }
 
 type Result struct {
