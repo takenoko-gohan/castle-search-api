@@ -22,7 +22,7 @@ type Result struct {
 }
 
 type Response struct {
-	Message error `json:"message"`
+	Message string `json:"message"`
 	Results []Result
 }
 
@@ -47,8 +47,7 @@ func CastleSearch(c echo.Context) (err error) {
 	// elasticsearch へ接続
 	es, err := connectElasticsearch()
 	if err != nil {
-		res.Message = err
-		return c.JSON(http.StatusInternalServerError, res)
+		c.Error(err)
 	}
 
 	// elasticsearch へクエリ
@@ -60,14 +59,12 @@ func CastleSearch(c echo.Context) (err error) {
 		es.Search.WithPretty(),
 	)
 	if err != nil {
-		res.Message = err
-		return c.JSON(http.StatusInternalServerError, res)
+		c.Error(err)
 	}
 	defer r.Body.Close()
 
 	if err := json.NewDecoder(r.Body).Decode(&b); err != nil {
-		res.Message = err
-		return c.JSON(http.StatusInternalServerError, res)
+		c.Error(err)
 	}
 
 	// クエリの結果を Responce.Results に格納
@@ -84,6 +81,8 @@ func CastleSearch(c echo.Context) (err error) {
 
 		res.Results = append(res.Results, *result)
 	}
+
+	res.Message = "検索に成功しました。"
 
 	return c.JSON(http.StatusOK, res)
 }
