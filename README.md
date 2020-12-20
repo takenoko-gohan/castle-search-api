@@ -1,6 +1,6 @@
 # castle-search-api
 
-これは、名城100選を検索するAPIになります。
+これは、日本100名城を検索するAPIになります。
 このAPIは[castle-search-api-environment](https://github.com/takenoko-gohan/castle-search-api-environment)で構築された環境で利用されることを前提にしています。
 
 # 利用方法
